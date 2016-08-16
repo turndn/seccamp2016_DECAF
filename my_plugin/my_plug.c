@@ -15,6 +15,9 @@ static DECAF_Handle ReadFile_handle = DECAF_NULL_HANDLE;
 char targetname[512];
 uint32_t target_cr3;
 
+#define UDTF_ARG 6
+#define RDF_ARG  6
+
 /*
  * HRESULT URLDownloadToFile(
  *              LPUNKNOWN            pCaller,
@@ -26,7 +29,7 @@ uint32_t target_cr3;
  */
 
 typedef struct {
-    uint32_t call_stack[5]; //paramters and return address
+    uint32_t call_stack[UDTF_ARG]; //paramters and return address
     DECAF_Handle hook_handle;
 } URLDownloadToFileW_hook_context_t;
 
@@ -46,7 +49,7 @@ static void URLDownloadToFileW_call(void *opaque)
     if(!ctx) return;
 
     // get return addr and arguments
-    DECAF_read_mem(NULL, cpu_single_env->regs[R_ESP], 16, ctx->call_stack);
+    DECAF_read_mem(NULL, cpu_single_env->regs[R_ESP], 4 * UDTF_ARG, ctx->call_stack);
 
     // get url from argument
     int i;
@@ -88,7 +91,7 @@ static void URLDownloadToFileW_call(void *opaque)
  */
 
 typedef struct {
-        uint32_t call_stack[5]; //paramters and return address
+        uint32_t call_stack[RDF_ARG]; //paramters and return address
         DECAF_Handle hook_handle;
 } ReadFile_hook_context_t;
 
@@ -145,7 +148,7 @@ static void ReadFile_call(void *opaque)
     if(!ctx) return;
 
     // get return addr and arguments
-    DECAF_read_mem(NULL, cpu_single_env->regs[R_ESP], 16, ctx->call_stack);
+    DECAF_read_mem(NULL, cpu_single_env->regs[R_ESP], 4 * RDF_ARG, ctx->call_stack);
 
     DECAF_printf("Read buffer address: 0x%x\n", ctx->call_stack[2]);
     DECAF_printf("Return address: 0x%x\n", ctx->call_stack[0]);     // return addr
